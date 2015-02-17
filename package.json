@@ -1,0 +1,16 @@
+{
+  "name": "HerokuGitStatus",
+  "author": "Casey Jones",
+  "version": "0.0.1",
+  "description": "Are you up to date? Compare your github master commits to your latest heroku deployment.",
+  "main": "index.js",
+  "engines": {
+    "iojs": ">1.1.x"
+  },
+  "dependencies": {
+    "colors": "^1.0.3",
+    "github": "^0.2.3",
+    "heroku": "^0.1.2"
+  },
+  "license": "MIT"
+}
