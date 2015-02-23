@@ -4,6 +4,7 @@ var colors = require("colors");
 
 var heroToken = process.env.HEROKU_TOKEN;
 var gitToken = process.env.GITHUB_TOKEN;
+//Place token in place process.env.TOKEN or set environmental tokens
 
 var heroku = new Heroku.Heroku({key: heroToken});
 var github = new GitAPI({  version: "3.0.0"  });
@@ -13,7 +14,20 @@ github.authenticate({
     token: gitToken
 });
 
-var USER_NAME = "NAQ";
+var ORG_NAME = "NAQ";
+//Change Organization to yours (added functionality soon to come);
+
+var heroRepoNames = require('./heroku_github_namemap.json');
+/*Map heroku apps to github repos in the file above like so
+{
+  "Heroku-App-Name": "Github-Repo-Name",
+  "HerokuApp2": "MatchingGitHubApp"
+}
+*/
+
+var REPONAME_PAD_RIGHT_LENGTH = 24;
+// Change to pad repo names to desirable length when logged in console
+// TODO Add functionalitiy to adjust console.log(--Repo--)
 
 String.prototype.padRight = function (len) {
   if(this.length < len) {
@@ -28,7 +42,7 @@ String.prototype.padRight = function (len) {
 
 function getGit (callback) {
   var gitRepos = [];
-  github.repos.getFromOrg({org: "NAQ"}, function (err, repos) {
+  github.repos.getFromOrg({org: ORG_NAME}, function (err, repos) {
     repos.forEach(function (repo) {
       github.repos.getBranches({user: repo.owner.login, repo: repo.name}, function (err, branches) {
         branches.forEach(function (branch) {
@@ -85,7 +99,6 @@ function getRepos(git, heroku, cb) {
 
 }
 
-var heroRepoNames = require('../heroku_github_namemap.json');
 
 ////////////^^^ FUNCTIONS//////// CALLS
 
@@ -102,7 +115,7 @@ getRepos(getGit, getHeroku, function (repos) {
     repos.gitArr.forEach(function (gitRepo) {
       repos.heroArr.forEach(function (heroRepo) {
         if(gitRepo.name === heroRepoNames[heroRepo.name]) {
-          var str = gitRepo.name.padRight(24)+" ||  Sha: "+ gitRepo.gitCommit+"  ||  Sha: "+ heroRepo.herokuCommit+ "  === ";
+          var str = gitRepo.name.padRight(REPONAME_PAD_RIGHT_LENGTH)+" ||  Sha: "+ gitRepo.gitCommit+"  ||  Sha: "+ heroRepo.herokuCommit+ "  === ";
           var flag = gitRepo.gitCommit === heroRepo.herokuCommit ? str.green+"Match".padRight(12).green : str.red+"OUT OF DATE".padRight(12).red;
           flag = (gitRepo.branchCount > 0) ? flag+String("== "+gitRepo.branchCount).yellow+" branch(es)".yellow : flag;
           console.log(flag);
