@@ -2,24 +2,35 @@
 Are you up to date? Compare your github master commits to your latest heroku deployment.
 
 # Settings
-* Edit heroku-compare.js to desired settings
+* Edit heroku-compare.js to desired settings </li>
 
-`var heroToken = process.env.HEROKU_TOKEN;
-var gitToken = process.env.GITHUB_TOKEN;`
+```
+var heroToken = process.env.HEROKU_TOKEN;
+var gitToken = process.env.GITHUB_TOKEN;
+```
+
 Place token in place `process.env.TOKEN` or set environmental tokens
 
-* MAP TO DESIRED JSON FILE
-`var heroRepoNames = require('./heroku_github_namemap.json');`
+* Map to desired JSON file
+```
+var heroRepoNames = require('./heroku_github_namemap.json');
+```
 Map heroku apps to github repos in the file above like so
-`{
+```
+{
   "Heroku-App-Name": "Github-Repo-Name",
   "HerokuApp2": "MatchingGitHubRepo"
-}`
+}
+```
 
-* SET OPTIONS TO DESIRED OUPUT: ORG OR USER
-As examples:
-`var options = {user: "Cjones90"};`
-{user: "username"}
+* Set options to desired output: org or user
+Examples:
+```
+Form of {user: "username"}
+var options = {user: "Cjones90"};
+```
 or
-`var options = {org: "NAQ"};`
-{org: "orgName"}
+```
+Form of {org: "orgName"}
+var options = {org: "NAQ"};
+```

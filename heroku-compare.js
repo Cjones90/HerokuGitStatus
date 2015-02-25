@@ -17,13 +17,12 @@ var heroRepoNames = require('./heroku_github_namemap.json');
 
 // SET OPTIONS TO DESIRED OUPUT: ORG OR USER
 // var options = {user: "Cjones90"};
-var options = {org: "NAQ"};
+//  {user: "username"}
 
-/*
- options: {object}
- {org: "orgName"}
- {user: "username"}
-*/
+var options = {org: "NAQ"};
+//  {org: "orgName"}
+
+
 
 ///// NOTHING BELOW NEEDS TO BE CONFIGURED //////
 
