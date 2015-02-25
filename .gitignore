@@ -1,3 +1,4 @@
 .DS_Store
 npm-debug.log
+heroku_github_namemap.json
 node_modules/

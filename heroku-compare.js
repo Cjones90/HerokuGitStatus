@@ -6,15 +6,7 @@ var heroToken = process.env.HEROKU_TOKEN;
 var gitToken = process.env.GITHUB_TOKEN;
 //Place token in place process.env.TOKEN or set environmental tokens
 
-var heroku = new Heroku.Heroku({key: heroToken});
-var github = new GitAPI({  version: "3.0.0"  });
-
-github.authenticate({
-    type: "oauth",
-    token: gitToken
-});
-
-
+// MAP TO DESIRED JSON FILE
 var heroRepoNames = require('./heroku_github_namemap.json');
 /*Map heroku apps to github repos in the file above like so
 {
@@ -22,6 +14,26 @@ var heroRepoNames = require('./heroku_github_namemap.json');
   "HerokuApp2": "MatchingGitHubApp"
 }
 */
+
+// SET OPTIONS TO DESIRED OUPUT: ORG OR USER
+// var options = {user: "Cjones90"};
+var options = {org: "NAQ"};
+
+/*
+ options: {object}
+ {org: "orgName"}
+ {user: "username"}
+*/
+
+///// NOTHING BELOW NEEDS TO BE CONFIGURED //////
+
+var heroku = new Heroku.Heroku({key: heroToken});
+var github = new GitAPI({  version: "3.0.0"  });
+
+github.authenticate({
+    type: "oauth",
+    token: gitToken
+});
 
 String.prototype.padRight = function (len) {
   if(this.length < len) {
@@ -125,15 +137,6 @@ function padRepoLength(repos) {
 
 
 ////////////^^^ FUNCTIONS//////// CALLS
-
-/*
- options: {object}
- {org: "orgName"}
- {user: "username"}
-*/
-
-var options = {org: "NAQ"};
-// var options = {user: "Cjones90"};
 
 getRepos(options, getGit, getHeroku, function (repos) {
   //Result contains all repos from git/heroku as an object in the form of:
