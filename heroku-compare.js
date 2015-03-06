@@ -73,18 +73,24 @@ function getGit (options, callback) {
   })
 }
 
+// TODO do get_release and get_app at same time, pushing into array if doesnt exist
+// or mapping either .commit or .dyno if it doesnt exist, once both functions complete
+// call callback
 function getHeroku(callback) {
   var herokuRepos = [];
   heroku.get_apps(function (err, apps) {
     for(var i in apps) {
       (function (i) {
-        heroku.get_releases(apps[i].name, function (err, res) {
-          herokuRepos[herokuRepos.length] = {name: apps[i].name, commit: res[res.length-1].commit}
-          if(herokuRepos.length === apps.length) {
-            callback(null, herokuRepos);
-          }
+        heroku.get_releases(apps[i].name, function (err, releaseRes) {
+          heroku.get_app(apps[i].name, function (err, appRes) {
+            herokuRepos[herokuRepos.length] = {name: apps[i].name, commit: releaseRes[releaseRes.length-1].commit, dynos: appRes.dynos}
+            if(herokuRepos.length === apps.length) {
+              console.log(herokuRepos)
+              callback(null, herokuRepos);
+            }
+          })
         })
-      })(i)
+      })(i);
     }
   })
 }
@@ -145,11 +151,11 @@ getRepos(options, getGit, getHeroku, function (repos) {
   if(repos.gitArr.length && repos.heroArr.length) {
     var maxRepo = padRepoLength(heroRepoNames);
     console.log(); //// Buffer
-    console.log(maxRepo.str+" ||  ---- Git ---  ||  -- Heroku -- ");
+    console.log(maxRepo.str+" ||  ---- Git ---  ||  -- Heroku --  || -- Dynos --");
     repos.gitArr.forEach(function (gitRepo) {
       repos.heroArr.forEach(function (heroRepo) {
         if(gitRepo.name === heroRepoNames[heroRepo.name]) {
-          var str = gitRepo.name.padRight(maxRepo.MAX_LENGTH)+" ||  Sha: "+ gitRepo.commit+"  ||  Sha: "+ heroRepo.commit+ "  === ";
+          var str = gitRepo.name.padRight(maxRepo.MAX_LENGTH)+" ||  Sha: "+ gitRepo.commit+"  ||  Sha: "+ heroRepo.commit+"  ||  Dynos: "+ heroRepo.dynos+ "  === ";
           var flag = gitRepo.commit === heroRepo.commit ? str.green+"Match".padRight(12).green : str.red+"OUT OF DATE".padRight(12).red;
           flag = (gitRepo.branchCount > 0) ? flag+String("== "+gitRepo.branchCount).yellow+" branch(es)".yellow : flag;
           console.log(flag);
