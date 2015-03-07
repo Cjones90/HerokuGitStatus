@@ -85,7 +85,6 @@ function getHeroku(callback) {
           heroku.get_app(apps[i].name, function (err, appRes) {
             herokuRepos[herokuRepos.length] = {name: apps[i].name, commit: releaseRes[releaseRes.length-1].commit, dynos: appRes.dynos}
             if(herokuRepos.length === apps.length) {
-              console.log(herokuRepos)
               callback(null, herokuRepos);
             }
           })
