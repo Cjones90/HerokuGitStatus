@@ -14,8 +14,8 @@ var gitToken = process.env.GITHUB_TOKEN;
 
 
 //My current uses:
-// var options = {user: "Cjones90"};
-var options = {org: "NAQ"};
+var options = {user: "Cjones90"};
+// var options = {org: "NAQ"};
 
 
 ///// NOTHING BELOW NEEDS TO BE CONFIGURED //////
@@ -190,7 +190,8 @@ getRepos(options, getGit, getHeroku, function (repos) {
     matchedArr.forEach(function(elem) {
       var str = elem.heroRepo.name.padRight(maxRepo.MAX_LENGTH)+
           " ||  Sha: "+ elem.gitRepo.commit+"  ||  Sha: "+ elem.heroRepo.commit+
-          "  ||  #: "+ elem.heroRepo.dynos+ " Size: "+String(elem.heroRepo.dynoSize).padRight(2)+"  === ";
+          "  ||  #: "+ elem.heroRepo.dynos+ " Size: "+
+          String(elem.heroRepo.dynoSize).padRight(2)+"  === ";
       var flag = elem.gitRepo.commit === elem.heroRepo.commit ?
           str.green+"Match".padRight(12).green :
           str.red+"OUT OF DATE".padRight(12).red;

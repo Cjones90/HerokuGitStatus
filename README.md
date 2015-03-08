@@ -2,35 +2,37 @@
 Are you up to date? Compare your github master commits to your latest heroku deployment.
 
 # Settings
-* Edit heroku-compare.js to desired settings </li>
+* npm i
+* Edit heroku-compare.js to desired settings illustrated below.
+* node hero*.js
+
+Place your tokens in place `process.env.TOKEN` or set environmental tokens.
 
 ```
 var heroToken = process.env.HEROKU_TOKEN;
 var gitToken = process.env.GITHUB_TOKEN;
 ```
 
-Place token in place `process.env.TOKEN` or set environmental tokens
+Set options to desired output: org or user
 
-* Map to desired JSON file
-```
-var heroRepoNames = require('./heroku_github_namemap.json');
-```
-Map heroku apps to github repos in the file above like so
-```
-{
-  "Heroku-App-Name": "Github-Repo-Name",
-  "HerokuApp2": "MatchingGitHubRepo"
-}
-```
 
-* Set options to desired output: org or user
-Examples:
 ```
-Form of {user: "username"}
 var options = {user: "Cjones90"};
 ```
 or
 ```
-Form of {org: "orgName"}
 var options = {org: "NAQ"};
 ```
+
+* Example output:
+
+```
+kc@kc-acer:~/Templates/herokugit$ node hero*.js
+------Live---- ||  ---- Git ---  ||  -- Heroku --  ||  --- Dynos ---
+kc-blog        ||  Sha: 9ab1858  ||  Sha: 9ab1858  ||  #: 1 Size: 1   === Match
+kc-out-of-date ||  Sha: e07f57d  ||  Sha: 2ceafd9  ||  #: 4 Size: 2   === OUT OF DATE == 1 branch(es)
+```
+
+
+# Latest Releases
+* No longer needs .json map file.
