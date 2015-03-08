@@ -16,10 +16,10 @@ var heroRepoNames = require('./heroku_github_namemap.json');
 */
 
 // SET OPTIONS TO DESIRED OUPUT: ORG OR USER
-// var options = {user: "Cjones90"};
+var options = {user: "Cjones90"};
 //  {user: "username"}
 
-var options = {org: "NAQ"};
+// var options = {org: "NAQ"};
 //  {org: "orgName"}
 
 
@@ -59,15 +59,22 @@ function getGit (options, callback) {
   }
   getRepos(options, function (err, repos) {
     repos.forEach(function (repo) {
-      github.repos.getBranches({user: repo.owner.login, repo: repo.name}, function (err, branches) {
-        branches.forEach(function (branch) {
-          if(branch.name === 'master') {
-            gitRepos[gitRepos.length] = {name: repo.name, commit: branch.commit.sha.slice(0,7), branchCount: branches.length-1}
-          }
+      var commitArr = [];
+      github.repos.getCommits({user: repo.owner.login, repo: repo.name}, function(err, results) {
+        results.forEach(function(elem) {
+          commitArr.push(elem.sha.slice(0,7));
         })
-        if(gitRepos.length === repos.length) {
-          callback(null, gitRepos)
-        }
+        github.repos.getBranches({user: repo.owner.login, repo: repo.name}, function (err, branches) {
+          branches.forEach(function (branch) {
+            if(branch.name === 'master') {
+              gitRepos[gitRepos.length] = {name: repo.name, commit: branch.commit.sha.slice(0,7),
+                branchCount: branches.length-1, commitArr: commitArr};
+              if(gitRepos.length === repos.length) {
+                callback(null, gitRepos)
+              }
+            }
+          })
+        })
       })
     })
   })
@@ -144,22 +151,26 @@ function padRepoLength(repos) {
 
 getRepos(options, getGit, getHeroku, function (repos) {
   //Result contains all repos from git/heroku as an object in the form of:
-  //  repos = {gitArr: [{}, {} ...], heroArr: [{}, {} ...]}
-  //Git array = [{name: "RepoName", commit: "7 dig Sha Number"}, {}, {} ...]
-  //Heroku array = [{name: "RepoName", commit: "7 dig Sha Number"}, {}, {} ...]
+  //repos = {gitArr: [{}, {} ...], heroArr: [{}, {} ...]}
+  //gitArr = [{name: "RepoName", commit: "7 dig Sha Number"}, {}, {} ...]
+  //heroArr = [{name: "RepoName", commit: "7 dig Sha Number"}, {}, {} ...]
   if(repos.gitArr.length && repos.heroArr.length) {
     var maxRepo = padRepoLength(heroRepoNames);
     console.log(); //// Buffer
     console.log(maxRepo.str+" ||  ---- Git ---  ||  -- Heroku --  || -- Dynos --");
     repos.gitArr.forEach(function (gitRepo) {
-      repos.heroArr.forEach(function (heroRepo) {
-        if(gitRepo.name === heroRepoNames[heroRepo.name]) {
-          var str = gitRepo.name.padRight(maxRepo.MAX_LENGTH)+" ||  Sha: "+ gitRepo.commit+"  ||  Sha: "+ heroRepo.commit+"  ||  Dynos: "+ heroRepo.dynos+ "  === ";
-          var flag = gitRepo.commit === heroRepo.commit ? str.green+"Match".padRight(12).green : str.red+"OUT OF DATE".padRight(12).red;
-          flag = (gitRepo.branchCount > 0) ? flag+String("== "+gitRepo.branchCount).yellow+" branch(es)".yellow : flag;
-          console.log(flag);
-        }
+      var heroRepo = repos.heroArr.filter(function (elem) {
+        return gitRepo.commitArr.some(function (elem2) {
+          return elem2 === elem.commit;
+        })
       })
+      if(heroRepo.length) {
+        var heroRepo = heroRepo[0];
+        var str = gitRepo.name.padRight(maxRepo.MAX_LENGTH)+" ||  Sha: "+ gitRepo.commit+"  ||  Sha: "+ heroRepo.commit+"  ||  Dynos: "+ heroRepo.dynos+ "  === ";
+        var flag = gitRepo.commit === heroRepo.commit ? str.green+"Match".padRight(12).green : str.red+"OUT OF DATE".padRight(12).red;
+        flag = (gitRepo.branchCount > 0) ? flag+String("== "+gitRepo.branchCount).yellow+" branch(es)".yellow : flag;
+        console.log(flag);
+      }
     })
   }
 });
