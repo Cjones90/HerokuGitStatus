@@ -6,25 +6,29 @@ var heroToken = process.env.HEROKU_TOKEN;
 var gitToken = process.env.GITHUB_TOKEN;
 //Place token in place process.env.TOKEN or set environmental tokens
 
-// MAP TO DESIRED JSON FILE
-var heroRepoNames = require('./heroku_github_namemap.json');
-/*Map heroku apps to github repos in the file above like so
-{
-  "Heroku-App-Name": "Github-Repo-Name",
-  "HerokuApp2": "MatchingGitHubApp"
-}
-*/
 
 // SET OPTIONS TO DESIRED OUPUT: ORG OR USER
-var options = {user: "Cjones90"};
+//  Examples:
 //  {user: "username"}
-
-// var options = {org: "NAQ"};
 //  {org: "orgName"}
 
 
+//My current uses:
+// var options = {user: "Cjones90"};
+var options = {org: "NAQ"};
+
 
 ///// NOTHING BELOW NEEDS TO BE CONFIGURED //////
+// TODO implement error catching
+// TODO optimize calls
+// TODO create API for npm/node use
+// TODO allow params be passed in via CLI eg.
+//    node hero*.js user:Cjones90
+//    node hero*.js org:NAQ
+// TODO remove change to String.prototype
+// TODO modulize
+// TODO better documentation
+
 
 var heroku = new Heroku.Heroku({key: heroToken});
 var github = new GitAPI({  version: "3.0.0"  });
@@ -60,15 +64,25 @@ function getGit (options, callback) {
   getRepos(options, function (err, repos) {
     repos.forEach(function (repo) {
       var commitArr = [];
-      github.repos.getCommits({user: repo.owner.login, repo: repo.name}, function(err, results) {
+      github.repos.getCommits({
+        user: repo.owner.login,
+        repo: repo.name
+        }, function(err, results) {
         results.forEach(function(elem) {
           commitArr.push(elem.sha.slice(0,7));
         })
-        github.repos.getBranches({user: repo.owner.login, repo: repo.name}, function (err, branches) {
+        github.repos.getBranches({
+          user: repo.owner.login,
+          repo: repo.name
+          }, function (err, branches) {
           branches.forEach(function (branch) {
             if(branch.name === 'master') {
-              gitRepos[gitRepos.length] = {name: repo.name, commit: branch.commit.sha.slice(0,7),
-                branchCount: branches.length-1, commitArr: commitArr};
+              gitRepos[gitRepos.length] = {
+                name: repo.name,
+                commit: branch.commit.sha.slice(0,7),
+                branchCount: branches.length-1,
+                commitArr: commitArr
+              };
               if(gitRepos.length === repos.length) {
                 callback(null, gitRepos)
               }
@@ -80,17 +94,20 @@ function getGit (options, callback) {
   })
 }
 
-// TODO do get_release and get_app at same time, pushing into array if doesnt exist
-// or mapping either .commit or .dyno if it doesnt exist, once both functions complete
-// call callback
+
 function getHeroku(callback) {
   var herokuRepos = [];
   heroku.get_apps(function (err, apps) {
     for(var i in apps) {
       (function (i) {
         heroku.get_releases(apps[i].name, function (err, releaseRes) {
-          heroku.get_app(apps[i].name, function (err, appRes) {
-            herokuRepos[herokuRepos.length] = {name: apps[i].name, commit: releaseRes[releaseRes.length-1].commit, dynos: appRes.dynos}
+          heroku.get_ps(apps[i].name, function (err, dyno) {
+            herokuRepos[herokuRepos.length] = {
+              name: apps[i].name,
+              commit: releaseRes[releaseRes.length-1].commit,
+              dynos: apps[i].dynos,
+              dynoSize: dyno[0].size
+            }
             if(herokuRepos.length === apps.length) {
               callback(null, herokuRepos);
             }
@@ -123,7 +140,6 @@ function getRepos(userFlag, git, heroku, cb) {
       }
     });
   });
-
 }
 
 function padRepoLength(repos) {
@@ -132,15 +148,16 @@ function padRepoLength(repos) {
     str: ''
   }
   for(p in repos) {
-    if(repos[p].length > padRepo.MAX_LENGTH) {
-      padRepo.MAX_LENGTH = repos[p].length;
+    if(repos[p].heroRepo.name.length > padRepo.MAX_LENGTH) {
+      padRepo.MAX_LENGTH = repos[p].heroRepo.name.length;
     }
   }
+  var minus = !(padRepo.MAX_LENGTH % 2) ? 2 : 3;
   for(var i = 0; i < (padRepo.MAX_LENGTH/2)-2; i++) {
     padRepo.str += "-";
   }
-  padRepo.str += 'Repo'
-  for(var j = 0; j < (padRepo.MAX_LENGTH/2)-2; j++) {
+  padRepo.str += 'Live'
+  for(var j = 0; j < (padRepo.MAX_LENGTH/2)-minus; j++) {
     padRepo.str += "-";
   }
   return padRepo;
@@ -155,9 +172,7 @@ getRepos(options, getGit, getHeroku, function (repos) {
   //gitArr = [{name: "RepoName", commit: "7 dig Sha Number"}, {}, {} ...]
   //heroArr = [{name: "RepoName", commit: "7 dig Sha Number"}, {}, {} ...]
   if(repos.gitArr.length && repos.heroArr.length) {
-    var maxRepo = padRepoLength(heroRepoNames);
-    console.log(); //// Buffer
-    console.log(maxRepo.str+" ||  ---- Git ---  ||  -- Heroku --  || -- Dynos --");
+    var matchedArr = [];
     repos.gitArr.forEach(function (gitRepo) {
       var heroRepo = repos.heroArr.filter(function (elem) {
         return gitRepo.commitArr.some(function (elem2) {
@@ -166,11 +181,23 @@ getRepos(options, getGit, getHeroku, function (repos) {
       })
       if(heroRepo.length) {
         var heroRepo = heroRepo[0];
-        var str = gitRepo.name.padRight(maxRepo.MAX_LENGTH)+" ||  Sha: "+ gitRepo.commit+"  ||  Sha: "+ heroRepo.commit+"  ||  Dynos: "+ heroRepo.dynos+ "  === ";
-        var flag = gitRepo.commit === heroRepo.commit ? str.green+"Match".padRight(12).green : str.red+"OUT OF DATE".padRight(12).red;
-        flag = (gitRepo.branchCount > 0) ? flag+String("== "+gitRepo.branchCount).yellow+" branch(es)".yellow : flag;
-        console.log(flag);
+        matchedArr[matchedArr.length] = {"gitRepo": gitRepo, "heroRepo": heroRepo};
       }
+    })
+    var maxRepo = padRepoLength(matchedArr);
+    console.log(); //// Buffer
+    console.log(maxRepo.str+" ||  ---- Git ---  ||  -- Heroku --  ||  --- Dynos ---");
+    matchedArr.forEach(function(elem) {
+      var str = elem.heroRepo.name.padRight(maxRepo.MAX_LENGTH)+
+          " ||  Sha: "+ elem.gitRepo.commit+"  ||  Sha: "+ elem.heroRepo.commit+
+          "  ||  #: "+ elem.heroRepo.dynos+ " Size: "+String(elem.heroRepo.dynoSize).padRight(2)+"  === ";
+      var flag = elem.gitRepo.commit === elem.heroRepo.commit ?
+          str.green+"Match".padRight(12).green :
+          str.red+"OUT OF DATE".padRight(12).red;
+      flag = (elem.gitRepo.branchCount > 0) ?
+          flag+String("== "+elem.gitRepo.branchCount).yellow+" branch(es)".yellow :
+          flag;
+      console.log(flag);
     })
   }
 });
