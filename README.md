@@ -2,6 +2,7 @@
 Are you up to date? Compare your github master commits to your latest heroku deployment.
 
 # Settings
+* Currently designed to be run in the terminal
 * npm i
 * Edit heroku-compare.js to desired settings illustrated below.
 * node hero*.js
@@ -12,16 +13,19 @@ Place your tokens in place `process.env.TOKEN` or set environmental tokens.
 var heroToken = process.env.HEROKU_TOKEN;
 var gitToken = process.env.GITHUB_TOKEN;
 ```
-
 Set options to desired output: org or user
-
 
 ```
 var options = {user: "Cjones90"};
 ```
 or
 ```
-var options = {org: "NAQ"};
+var options = {org: "RealEstateEconomics"};
+```
+Now accepts CLI arguments. Example:
+```
+node hero*.js user Cjones90
+node hero*.js org RealEstateEconomics
 ```
 
 * Example output:
@@ -36,3 +40,10 @@ kc-out-of-date ||  Sha: e07f57d  ||  Sha: 2ceafd9  ||  #: 4 Size: 2   === OUT OF
 
 # Latest Releases
 * No longer needs .json map file.
+* Now accepts command line arguments.
+
+#Future Releases
+* More optimized calls
+* More cusomization
+* More options
+* Node API, for example, herogit.call({user: "Cjones90"})

@@ -14,17 +14,17 @@ var gitToken = process.env.GITHUB_TOKEN;
 
 
 //My current uses:
-var options = {user: "Cjones90"};
-// var options = {org: "NAQ"};
+var prop = process.argv[2] || user;
+var options = {};
+options[prop] = process.argv[3] || "Cjones90";
+// var options = {user: "Cjones90"};
+// var options = {org: "RealEstateEconomics"};
 
 
 ///// NOTHING BELOW NEEDS TO BE CONFIGURED //////
 // TODO implement error catching
 // TODO optimize calls
 // TODO create API for npm/node use
-// TODO allow params be passed in via CLI eg.
-//    node hero*.js user:Cjones90
-//    node hero*.js org:NAQ
 // TODO remove change to String.prototype
 // TODO modulize
 // TODO better documentation
