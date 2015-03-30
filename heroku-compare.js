@@ -14,11 +14,18 @@ var gitToken = process.env.GITHUB_TOKEN;
 
 
 //My current uses:
+
 var prop = process.argv[2] || 'user';
 var options = {};
 options[prop] = process.argv[3] || "Cjones90";
+
+// Example variables
 // var options = {user: "Cjones90"};
 // var options = {org: "RealEstateEconomics"};
+
+//Example command line usage:
+// node hero* user Cjones90
+// node hero* org RealEstateEconomics
 
 
 ///// NOTHING BELOW NEEDS TO BE CONFIGURED //////
