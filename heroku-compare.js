@@ -113,7 +113,7 @@ function getHeroku(callback) {
               name: apps[i].name,
               commit: releaseRes[releaseRes.length-1].commit,
               dynos: apps[i].dynos,
-              dynoSize: dyno[0].size
+              dynoSize: (dyno[0]) ? dyno[0].size : ''
             }
             if(herokuRepos.length === apps.length) {
               callback(null, herokuRepos);
