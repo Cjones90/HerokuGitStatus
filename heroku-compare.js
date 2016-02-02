@@ -15,10 +15,17 @@ var gitToken = process.env.GITHUB_TOKEN;
 
 //My current uses:
 var prop = process.argv[2] || "user";
+
 var options = {};
 options[prop] = process.argv[3] || "Cjones90";
+
+// Example variables
 // var options = {user: "Cjones90"};
 // var options = {org: "RealEstateEconomics"};
+
+//Example command line usage:
+// node hero* user Cjones90
+// node hero* org RealEstateEconomics
 
 
 ///// NOTHING BELOW NEEDS TO BE CONFIGURED //////
@@ -106,7 +113,7 @@ function getHeroku(callback) {
               name: apps[i].name,
               commit: releaseRes[releaseRes.length-1].commit,
               dynos: apps[i].dynos,
-              dynoSize: dyno[0].size
+              dynoSize: (dyno[0]) ? dyno[0].size : ''
             }
             if(herokuRepos.length === apps.length) {
               callback(null, herokuRepos);
