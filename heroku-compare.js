@@ -14,7 +14,7 @@ var gitToken = process.env.GITHUB_TOKEN;
 
 
 //My current uses:
-var prop = process.argv[2] || user;
+var prop = process.argv[2] || "user";
 var options = {};
 options[prop] = process.argv[3] || "Cjones90";
 // var options = {user: "Cjones90"};
